@@ -2,12 +2,15 @@
 
 session_start();
 include("connect.php");
+include("forum_functions.php");
+
  
 //Form post variables
 
-$firstname = $_POST['name1'];
-$lastname = $_POST['name2'];
-$number   = $_POST['name3'] ;
+$username = $_POST['username'];
+$password = $_POST['password'];
+$repass   = $_POST['repass'] ;
+$phone_no   = $_POST['phone_no'] ;
 
 
 // For captcha check
@@ -36,56 +39,134 @@ echo '<html>
         </head>
         </html>';
 
-if ((strlen($number) == 10 || strlen($number) == 12) && is_numeric($number)) 
-{                   
-    /*$sql = "INSERT INTO table_name(firstname , lastname , ph_number , doctor_name)
-            VALUES ( ? , ? , ? , ?);
-            ";*/
+//Checking if Password and Confirm Password are the same.
 
-    //preparing sql query
-    $stmt = $link->prepare($sql);
-    $stmt->bind_param('ssds' , $firstname , $lastname , $number , $doctorname);
-
-    if($stmt->execute()) //Registeration Success
-    {
-        echo '<div class="wrapper">
-                <nav class="navbar navbar-dark bg-dark">
-                    <div class="container-fluid">
-                        <div class="navbar-header">
-                            <a class="navbar-brand" href="" style="color:#fff;">Assista</a>
-                        </div>
-                        
-        
-                    </div>
-                </nav>
-            </div>
-            <div style="text-align: center; margin-top:100px;">
-            <div class="alert alert-success text-center"><b>Successfully Registered</b> as :   ' . $firstname . '  ' . $lastname . ' </div><br/><br/>
-            </div>';
-
-    }
+if ($repass == $password) 
+{
     
-    else    //Registeration Failure
+    $minpl = 8; //Minimum Password Length
+
+    //CHecking If the User forgot to enter the Username or Password
+    if ( $username == "" || $password == ""){
+        echo "Please fill in all the details <br/> Please check if you forgot to enter data in any of the fields <br/>";
+    }
+
+    //Checking for invalid Username or short Password
+    //The account will be fed to the database only if the above two conditions are satisfied.
+    else 
     {
-        echo '<div class="wrapper">
+        if(checkInvalidCharacters($username))//If any Invalid characters were entered in any of the fields
+        {        
+            echo '  <style>
+            body{
+            font-family:  "Raleway", sans-serif !important;
+            font-size: 20px;
+            }
+        
+            .btn-dark{
+            text-transform: uppercase;
+            font-weight:bold;
+            letter-spacing:0.5mm;
+            padding: 15px 30px 15px 30px;
+            }
+                    </style><body>
+
+            <div class="wrapper">
                 <nav class="navbar navbar-dark bg-dark">
                     <div class="container-fluid">
+                        <div class="navbar-header">
+                            <a class="navbar-brand" href="index.php" style="color:#fff;">Assista</a>
+                        </div>                       
+                    </div>
+                </nav>
+            </div>
+            <div style=" margin-top:100px;">
+                <div class="alert alert-warning">
+                    <b><center>Incorrect Username</center></b><br><br> Username can only contain :<br/><br/><ul><li> A to Z </li><li> a to z </li><li> 0 to 9 </li><li> . and _ </li></ul>
+            </div></body>';
+        }
+
+        else //If no invalid characters
+        {
+            if (strlen($password) >= $minpl) 
+            {
+                    $password = encrypt_pswd($password);
+                    
+                    $sql = "INSERT INTO doctors(username , password , phone_no)
+                            VALUES ( ? , ? , ? );
+                            ";
+
+                    $stmt = $link->prepare($sql);
+                    $stmt->bind_param('sss' , $username , $password , $phone_no);
+
+                    //$res = mysqli_query($link , $sql);
+
+                    if($stmt->execute()) //Registeration Success
+                    {
+                            echo '<style>
+                            body{
+                                font-family:  "Raleway", sans-serif !important;
+                                font-size: 20px;
+                            }
+        
+                        .btn-dark{
+                        text-transform: uppercase;
+                        font-weight:bold;
+                        letter-spacing:0.5mm;
+                        padding: 15px 30px 15px 30px;
+                        }
+                        </style><body><div class="wrapper">                
+                        </div><div style="text-align: center; margin-top:100px;"><div class="alert alert-success text-center"<b>Successfully Registered</b> as : <br><br> ' . $username . '
+                        <br/><br/>
+                        <a href="login.php" class="btn btn-dark">Log In</a>
+                        </div></div></body>';
+
+                        $_SESSION["username"] = $username;
+                    }
+    
+                    else    //Registeration Failure
+                    {
+                      
+                        echo '<div class="wrapper">
+                                <nav class="navbar navbar-dark bg-dark">
+                                <div class="container-fluid">
+                                <div class="navbar-header">
+                                <a class="navbar-brand" href="" style="color:#fff;">Assista</a>
+                                </div>
+                        
+        
+                                </div>
+                                </nav>
+                            </div><div style="text-align: center; margin-top:100px;"><div class="alert alert-warning text-center"><b>Registration failed</b></div></div> ';
+                        echo "Error is =>   " . mysqli_error($link);
+                    }
+
+                
+            }
+
+            else    //Password too short
+            {
+              
+                echo '<div class="wrapper">
+                      <nav class="navbar navbar-dark bg-dark">
+                        <div class="container-fluid">
                         <div class="navbar-header">
                             <a class="navbar-brand" href="" style="color:#fff;">Assista</a>
                         </div>
                         
         
-                    </div>
-                </nav>
-            </div>
-<div style="text-align: center; margin-top:100px;"><div class="alert alert-warning text-center"><b>Registration Failed</b><br/><br></div></div> ';
-        echo "Error is =>   " . mysqli_error($link);
+                        </div>
+                        </nav>
+                        </div><div style="text-align: center; margin-top:100px;"><div class="alert alert-warning text-center"><b>Password is too short</b><br/><br>Minimum length is 8 characters </div></div> ';
+            }
+        }
     }
+     
 }
 
-    else //Invalid Details 
-    {
-      echo '<div class="wrapper">
+else //Password and Confirm Password are not equal.
+{
+        echo '<div class="wrapper">
                 <nav class="navbar navbar-dark bg-dark">
                     <div class="container-fluid">
                         <div class="navbar-header">
@@ -95,8 +176,9 @@ if ((strlen($number) == 10 || strlen($number) == 12) && is_numeric($number))
         
                     </div>
                 </nav>
-            </div><div style="text-align: center; margin-top:100px;"><div class="alert alert-warning text-center"><b>Invalid phone number</b><br/><br>Please go back <a href = "index1.php"><--</a> to enter the details again</div></div> ';
-    }
+            </div><div style="text-align: center; margin-top:100px;"><div class="alert alert-warning text-center"><b>Passwords do not match</b><br/><br>Please enter the correct password </div></div> ';    
+}
+
      
 
 ?>

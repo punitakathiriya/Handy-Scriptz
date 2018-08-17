@@ -1,6 +1,7 @@
 <?php
 
-	echo '<html>
+// Include files
+echo '<html>
 
 <head>
     <link href="https://fonts.googleapis.com/css?family=Raleway" rel="stylesheet">
@@ -14,6 +15,7 @@
         crossorigin="anonymous"></script>
         </head>
         </html>';
+
     //Login Functions
     
     session_start();                    //To start sessional storage
@@ -23,9 +25,7 @@
     $username = $_POST['username'];     //Gets username and password by the post method.
     $password = $_POST['password'];
 
-   // echo "Username : " . $username . "<br/><br/> Password : " . $password;
-
-   //CHecking If the User forgot to enter the Username or Password
+    //CHecking If the User forgot to enter the Username or Password
     if ( $username == "" || $password == "")
     {
         echo ' <div class="alert alert-warning">Please fill in all the details <br/><br/> Please check if you forgot to enter data in any of the fields <br/></div>';
