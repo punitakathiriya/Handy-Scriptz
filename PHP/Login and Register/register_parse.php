@@ -1,11 +1,25 @@
 <?php
 
+session_start();
+include("connect.php");
+ 
+//Form post variables
+
+$firstname = $_POST['name1'];
+$lastname = $_POST['name2'];
+$number   = $_POST['name3'] ;
+
+
+// For captcha check
+
 if(isset($_GET['submit']) && !empty($_GET['captcha']) && isset($_SESSION['secure'])){
     if ($_SESSION['secure'] == $_GET['captcha'])
         echo 'Succsess!';
     else
         echo 'Please refresh and re-enter the captcha';
 }
+
+//Including Stylesheets etc for Registeration COnfirmation Message
 
 echo '<html>
 
@@ -21,27 +35,18 @@ echo '<html>
         crossorigin="anonymous"></script>
         </head>
         </html>';
-    session_start();
-    include("connect.php");
-    $doctorname = @$_SESSION["username"];
-    //include("forum_functions.php");
- 
-    $firstname = $_POST['name1'];
-    $lastname = $_POST['name2'];
-    $number   = $_POST['name3'] ;
 
-    //echo "First name :" . $firstname . "<br><br>Last name:" . $lastname . "<br><br> Number:" . $number;
-
-     if ((strlen($number) == 10 || strlen($number) == 12) && is_numeric($number)) 
+if ((strlen($number) == 10 || strlen($number) == 12) && is_numeric($number)) 
 {                   
-    $sql = "INSERT INTO patients(firstname , lastname , ph_number , doctor_name)
+    /*$sql = "INSERT INTO table_name(firstname , lastname , ph_number , doctor_name)
             VALUES ( ? , ? , ? , ?);
-            ";
+            ";*/
 
+    //preparing sql query
     $stmt = $link->prepare($sql);
     $stmt->bind_param('ssds' , $firstname , $lastname , $number , $doctorname);
 
-    if($stmt->execute())
+    if($stmt->execute()) //Registeration Success
     {
         echo '<div class="wrapper">
                 <nav class="navbar navbar-dark bg-dark">
@@ -57,22 +62,10 @@ echo '<html>
             <div style="text-align: center; margin-top:100px;">
             <div class="alert alert-success text-center"><b>Successfully Registered</b> as :   ' . $firstname . '  ' . $lastname . ' </div><br/><br/>
             </div>';
-        $patientname = $firstname . " " . $lastname;
-        $_SESSION["patient_name"] = $patientname;
-        $sql1 = "SELECT id , ph_number FROM patients WHERE firstname = '".$firstname."' and lastname = '".$lastname."'";
-        $result1 = mysqli_query($link , $sql1);
-    while($row = mysqli_fetch_array($result1)){
-        if($row['ph_number'] == $number):
-            $p_id = $row['id'];
-            $_SESSION["p_id"] = $p_id;
-        else:
-            continue;
-        endif;}
 
-        echo "<script>location='index2.php'</script>";
     }
     
-    else 
+    else    //Registeration Failure
     {
         echo '<div class="wrapper">
                 <nav class="navbar navbar-dark bg-dark">
@@ -90,7 +83,8 @@ echo '<html>
     }
 }
 
-    else {
+    else //Invalid Details 
+    {
       echo '<div class="wrapper">
                 <nav class="navbar navbar-dark bg-dark">
                     <div class="container-fluid">

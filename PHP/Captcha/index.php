@@ -15,7 +15,7 @@ $_SESSION['secure'] = rand(1000 , 9999);
 
 <form action = 'index.php' method = 'get'>
 <image src = 'captcha_generator.php'/>
-Enter the captcah code:
+Enter the captcha code:
 <input type = 'text' name = 'captcha' required>
 <input type = 'submit' name = 'submit'>
 <form>
